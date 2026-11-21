@@ -1,0 +1,5 @@
+build/
+.local/
+tools/
+*.bak
+.DS_Store
