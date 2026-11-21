@@ -197,7 +197,7 @@ struct MainView: View {
       ForEach(rows, id: \.0) { r in
         HStack { Text(r.0).foregroundStyle(K.sub); Spacer(minLength: 16); Text(r.1).foregroundStyle(K.ink).monospacedDigit() }.font(.system(size: 12))
       }
-      Text("줌 기준: 지터 30ms · 손실(60초) 2% · 지연 100ms 아래\n코딩 기준: 지연 150ms 아래 · 손실 1% 아래")
+      Text("줌 기준: 지터 30ms · 손실(60초) 2% · 지연 100ms 아래\n코딩 기준: 지연 150ms 아래 · 손실 2% 아래")
         .font(.system(size: 10)).foregroundStyle(K.sub).fixedSize(horizontal: false, vertical: true).padding(.top, 4)
     }.padding(14).frame(width: 340)
   }
