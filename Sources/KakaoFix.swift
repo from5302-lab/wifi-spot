@@ -2,7 +2,8 @@
 // 카페 와이파이의 동의(로그인) 화면이 끝까지 안 넘어가면 웹·줌 일부는 통해도 카톡 PC판 연결은 막힌다.
 // 동의를 마친 뒤에도 카톡이 이전 연결을 붙잡고 있으면 다시 켜야 붙는다. 버튼 하나로 순서대로:
 //   1) http://captive.apple.com/hotspot-detect.html 에 'Success' 가 있는지(캐시 없이, 5초 제한). 없으면 기본 브라우저로 열고 3초마다 다시(최대 2분)
-//   2) 카톡 정상 종료(NSRunningApplication.terminate, 5초 안에 안 꺼지면 한 번 더) → open -g 로 뒤에서 켬(창을 앞으로 안 띄움, 마우스 안 씀)
+//   2) 카톡이 이미 바깥에 연결돼 있으면 여기서 끝(다시 켜지 않음)
+//   2-1) 연결이 없을 때만 카톡 정상 종료(NSRunningApplication.terminate, 5초 안에 안 꺼지면 한 번 더) → open -g 로 뒤에서 켬(창을 앞으로 안 띄움, 마우스 안 씀)
 //   3) 15초 동안 KakaoTalk 의 바깥 TCP 연결(Established)이 생기는지 nettop 으로 확인(샌드박스라 lsof 에 안 보임)
 // 버튼을 누르지 않을 때는 아무것도 돌지 않는다(타이머·프로세스 없음).
 // 화면은 stage·message·hint·detail·running·outcome 을 읽는다. 시작은 run().
@@ -59,10 +60,21 @@ final class KakaoFixer: ObservableObject {
       }
       note("동의 끝남(\(Int(Date().timeIntervalSince(start)))초)")
     }
-    // 2) 카톡 다시 켜기
-    set(.restarting, "카톡 다시 켜는 중")
+    // 2) 이미 붙어 있으면 다시 켜지 않는다(2026-11-23 충쌤 "지금 누르면 그냥 카톡이 재실행되는데, 맞아?")
     guard let appURL = NSWorkspace.shared.urlForApplication(withBundleIdentifier: Self.kakaoBundle) else { finish(.noKakao, "카카오톡이 이 컴퓨터에 없어요"); return }
     let was = NSRunningApplication.runningApplications(withBundleIdentifier: Self.kakaoBundle)
+    if let pid = was.first?.processIdentifier {
+      set(.verifying, "카톡 연결 확인 중")
+      // 연결이 막 바뀌는 순간을 피하려고 1초 간격으로 세 번까지 본다
+      for i in 0..<3 {
+        let n = await Self.externalConnections(pid)
+        if n > 0 { note("카톡 바깥 연결 \(n)개(다시 켜지 않음)"); finish(.connected, "카톡은 이미 연결돼 있어요"); return }
+        if i < 2 { try? await Task.sleep(nanoseconds: 1_000_000_000) }
+      }
+      note("카톡 바깥 연결 0개 → 다시 켬")
+    }
+    // 3) 카톡 다시 켜기(연결이 없을 때만. 꺼져 있었으면 켜기만)
+    set(.restarting, was.isEmpty ? "카톡 켜는 중" : "카톡 다시 켜는 중")
     if !was.isEmpty {
       for round in 0..<2 {
         for a in NSRunningApplication.runningApplications(withBundleIdentifier: Self.kakaoBundle) { a.terminate() }
