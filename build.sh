@@ -35,6 +35,7 @@ cat > "$OUT/Contents/Info.plist" <<PLIST
   <key>NSHighResolutionCapable</key><true/>
   <key>NSLocationWhenInUseUsageDescription</key><string>지금 연결된 와이파이 이름을 보여 주려고 써요</string>
   <key>NSLocationUsageDescription</key><string>지금 연결된 와이파이 이름을 보여 주려고 써요</string>
+  <key>NSAppTransportSecurity</key><dict><key>NSExceptionDomains</key><dict><key>captive.apple.com</key><dict><key>NSExceptionAllowsInsecureHTTPLoads</key><true/></dict></dict></dict>
 </dict></plist>
 PLIST
 [ -f icon/AppIcon.icns ] && cp icon/AppIcon.icns "$OUT/Contents/Resources/"

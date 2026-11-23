@@ -26,6 +26,8 @@ final class Engine: NSObject, ObservableObject, CLLocationManagerDelegate {
   private(set) var samples: [Sample] = []
   private(set) var tick = 0
   @Published var locationAsked = false
+  /// 카톡 연결 고치기(KakaoFix.swift). 화면은 e.kakao 를 @ObservedObject 로 읽고 e.kakao.run() 으로 시작
+  let kakao = KakaoFixer()
 
   private var pings: [Double?] = []      // 최근 30초(없으면 손실)
   private var lastPing: (Double?, Bool) = (nil, false)   // (값, 새로 왔는지)
@@ -46,6 +48,17 @@ final class Engine: NSObject, ObservableObject, CLLocationManagerDelegate {
     RunLoop.main.add(timer!, forMode: .common)
     watchSleep()
     step()
+    // 시험용: WIFISPOT_KAKAOFIX_TEST=1 로 켜면 2초 뒤 카톡 연결 고치기를 한 번 돌리고 단계를 파일(WIFISPOT_KAKAOFIX_LOG)에 적는다
+    let env = ProcessInfo.processInfo.environment
+    if env["WIFISPOT_KAKAOFIX_TEST"] == "1" {
+      let path = env["WIFISPOT_KAKAOFIX_LOG"] ?? "/tmp/wifispot-kakaofix.log"
+      kakao.log = { line in
+        let t = ISO8601DateFormatter().string(from: Date())
+        if let h = FileHandle(forWritingAtPath: path) { h.seekToEndOfFile(); h.write("\(t) \(line)\n".data(using: .utf8)!); try? h.close() }
+        else { FileManager.default.createFile(atPath: path, contents: "\(t) \(line)\n".data(using: .utf8)) }
+      }
+      DispatchQueue.main.asyncAfter(deadline: .now() + 2) { [weak self] in self?.kakao.run() }
+    }
   }
 
   /// 잠자기·화면 잠금 동안 측정 멈춤, 깨면 지난 값을 비우고 다시 시작
