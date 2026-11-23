@@ -14,7 +14,7 @@ enum K {
 }
 
 /// 측정기는 앱에 하나. App 본문이 측정기를 직접 지켜보면 창이 닫혀 있어도 장면 전체를 5초마다 다시 계산하므로,
-/// 메뉴 막대 숫자(MenuLabel)와 메인 창(Feed 거쳐)만 따로 지켜본다(Yui 11-23, 창 닫힘 CPU 1% 아래)
+/// 메뉴 막대 숫자(MenuLabel)와 메인 창(Feed 거쳐)만 따로 지켜본다(창 닫힘 CPU 1% 아래)
 @MainActor enum Shared { static let e = Engine(); static let feed = Feed(e) }
 
 /// 메인 창용 중계: 측정기가 바뀌었다고 알려도 메인 창이 보일 때만 화면에 전한다. 창이 다시 보이면 한 번 새로 그림
@@ -257,7 +257,7 @@ struct MainView: View {
   func ms(_ v: Double?) -> String { v.map { String(format: "%.0fms", $0) } ?? "–" }
 }
 
-// ── 카톡 연결 고치기(엔진은 KakaoFix.swift, Dival) ──
+// ── 카톡 연결 고치기(엔진은 KakaoFix.swift) ──
 /// 버튼: Lucide message-circle + 글자, 높이 26, 모서리 6(알약 아님), 글자 상하 가운데. 도는 동안은 눌리지 않음
 struct KakaoButton: View {
   @ObservedObject var k: KakaoFixer

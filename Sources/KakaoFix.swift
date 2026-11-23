@@ -60,7 +60,7 @@ final class KakaoFixer: ObservableObject {
       }
       note("동의 끝남(\(Int(Date().timeIntervalSince(start)))초)")
     }
-    // 2) 이미 붙어 있으면 다시 켜지 않는다(2026-11-23 충쌤 "지금 누르면 그냥 카톡이 재실행되는데, 맞아?")
+    // 2) 이미 붙어 있으면 다시 켜지 않는다(괜히 껐다 켜지 않게)
     guard let appURL = NSWorkspace.shared.urlForApplication(withBundleIdentifier: Self.kakaoBundle) else { finish(.noKakao, "카카오톡이 이 컴퓨터에 없어요"); return }
     let was = NSRunningApplication.runningApplications(withBundleIdentifier: Self.kakaoBundle)
     if let pid = was.first?.processIdentifier {
